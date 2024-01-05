@@ -27,8 +27,9 @@ import sys
 from pathlib import Path
 
 import numpy as np
-from PyQt5.QtWidgets import QApplication, QFileDialog, QMainWindow, QPushButton, QInputDialog, QLineEdit
+from PyQt5.QtWidgets import QApplication, QFileDialog, QMainWindow, QPushButton, QInputDialog, QLineEdit, QDialog
 from PyQt5.QtGui import *
+from PyQt5.uic import loadUi
 from PyQt5.QtCore import *
 from qgis.core import *
 from qgis.gui import *
@@ -45,13 +46,21 @@ import fiona
 import decimal
 import time
 
+class SubWindow(QDialog):
+    def __init__(self):
+        super().__init__()
+        loadUi(os.path.join(
+    os.path.dirname(__file__),'dissolveInter.ui'), self)
+        #self.closeButton.clicked.connect(self.close)  # Botão para fechar o diálogo
+        
 # This loads your .ui file so that PyQt can populate your plugin with the elements from Qt Designer
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'Teste_dialog_base.ui'))
 
+
 class TesteDialog(QtWidgets.QDialog, FORM_CLASS):
 
-
+   
     def __init__(self, parent=None):
         """Constructor."""
         super(TesteDialog, self).__init__(parent)
@@ -80,6 +89,13 @@ class TesteDialog(QtWidgets.QDialog, FORM_CLASS):
         self.cbCamada_inter.clear()
         interCamada = self.cbCamada_inter
         interCamada.addItems(nome_arquivo)
+
+        #teste
+        self.cbSobreposicao.clear()
+        selectSobreposicao = self.cbSobreposicao
+        selectSobreposicao.addItems(nome_arquivo)
+        selectSobreposicao.showNormal()
+        selectSobreposicao.activated[str].connect(lambda text: self.intersecao())
 
 
         interCamada.showNormal()
@@ -113,7 +129,7 @@ class TesteDialog(QtWidgets.QDialog, FORM_CLASS):
         try:
             #entra na função gerarInterseção
             self.pbGerarInter.clicked.connect(
-                lambda: self.gerarIntersecao(self.mCb_colunasInter.checkedItems(),self.arquivos, gpd.read_file(self.arquivos[self.cbCamada_inter.currentText()], encoding="utf-8"), gpd.read_file(self.arquivos[self.cbCamadas.currentText()], encoding="utf-8"),
+                lambda: self.gerarIntersecao(self.mCb_colunasInter.checkedItems(),self.arquivos, gpd.read_file(self.arquivos[self.cbCamada_inter.currentText()], encoding="utf-8"), gpd.read_file(self.arquivos[self.cbSobreposicao.currentText()], encoding="utf-8"),
                                              self.cbSomarAreaInter.checkedItems()))
         except:
             pass
@@ -124,7 +140,8 @@ class TesteDialog(QtWidgets.QDialog, FORM_CLASS):
         k = self.pbColunas.clicked.connect(lambda ts : self.checarBox)
        # acredito que essa validação nem funcione direito/proposito
         if k:
-
+            self.sub_window = SubWindow()
+            self.sub_window.exec_()
             self.pbColunas.clicked.connect(
                 lambda: self.selecionar_campos(self.cbColuna1.currentText(), self.cbColuna2.currentText(),
                                                self.cbColuna3.currentText(),
