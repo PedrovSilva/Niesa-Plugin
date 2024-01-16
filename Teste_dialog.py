@@ -74,7 +74,7 @@ class TesteDialog(QtWidgets.QDialog, FORM_CLASS):
         #bastante reload no plugin mas se testar corretamenta da para tirar
         reloadPlugin('teste')
         #names = [layer.name() for layer in QgsProject.instance().mapLayers().values()] # na forma de list compr
-
+        self.sub_window = SubWindow()
         # esse for ele pega as camadas do Qgis
         arquivos = {}
         nome_arquivo = []
@@ -140,8 +140,7 @@ class TesteDialog(QtWidgets.QDialog, FORM_CLASS):
         k = self.pbColunas.clicked.connect(lambda ts : self.checarBox)
        # acredito que essa validação nem funcione direito/proposito
         if k:
-            self.sub_window = SubWindow()
-            self.sub_window.exec_()
+           
             self.pbColunas.clicked.connect(
                 lambda: self.selecionar_campos(self.cbColuna1.currentText(), self.cbColuna2.currentText(),
                                                self.cbColuna3.currentText(),
@@ -213,6 +212,8 @@ class TesteDialog(QtWidgets.QDialog, FORM_CLASS):
     #talvez sem função
     def checarBox(self):
         b = self.cbDissolve_Intersecao.isChecked()
+        self.sub_window.exec()
+        self.sub_window.show()
         return b
 
 
@@ -323,7 +324,7 @@ class TesteDialog(QtWidgets.QDialog, FORM_CLASS):
         df_dissolvido = df_dissolvido.drop(columns=['nomeTemporario'])
         lp = lp.drop(columns=['nomeTemporario'])
 
-        if self.cbLegenda.isChecked():
+        if self.cbLegenda.isChecked() or self.cbLegenda_2.isChecked():
             df_dissolvido['Leg_Dissol'] =''
             lp['ID_Legenda']=''
             filled['ID_Legenda']=''
@@ -332,7 +333,7 @@ class TesteDialog(QtWidgets.QDialog, FORM_CLASS):
 
         #coloca a legenda e substitui o null nela tmb
         for i in range(len(df_dissolvido)):
-            if self.cbLegenda.isChecked():
+            if self.cbLegenda.isChecked() or self.cbLegenda_2.isChecked():
                 if len(campos_dissolve) == 1:
                     df_dissolvido['Leg_Dissol'][i] = f'[{i + 1}] {df_dissolvido[campos_dissolve[0]][i]}'
                     if 'NULL' in df_dissolvido['Leg_Dissol'][i]:
@@ -519,6 +520,9 @@ class TesteDialog(QtWidgets.QDialog, FORM_CLASS):
             df_comArea.to_file(f'{head}/{nome_arquivo}.geojson', driver="GeoJSON")
 
         if self.cbDissolve_Intersecao.isChecked():
+            self.sub_window = SubWindow()
+            self.sub_window.exec()
+            self.sub_window.show()
             self.gerarIntersecao(col_inter,arquivos,inter_df,copia,col_campos)
         self.lbResposta.setText(f'Arquivos criados com sucesso')
         QApplication.restoreOverrideCursor()
